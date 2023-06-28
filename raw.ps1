@@ -1,1 +1,2 @@
-echo Running Main Branch
+@echo off
+
