@@ -34,7 +34,7 @@ source = source:gsub("module%s*%[%s*%d+%s*%]%s*=",
         return replacement
     end
 )
-
-local fn = loadstring(source)
-local module = fn()
-return(module)
+return source
+--local fn = loadstring(source)
+--local module = fn()
+--return(module)
