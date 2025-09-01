@@ -755,6 +755,11 @@ newButton("hallucinate","Home",function()
   goto("home")
 end)
 
+constructPage("hallucinate2")
+newButton("hallucinate","Next",function()
+	goto("hallucinate2")
+end)
+
 local function populatePage(pageName, items)
 	local buttonsPerPage = 12
 	local pageCount = math.ceil(#items / (buttonsPerPage - 3)) -- -2 for next/back buttons
@@ -772,6 +777,15 @@ local function populatePage(pageName, items)
 	for i, pageItems in ipairs(pages) do
 		local currentPageName = pageName .. "_page" .. i
 		constructPage(currentPageName)
+		if i < 11 then
+		newButton("hallucinate","Page ".. i,function()
+			goto(pageName .. "_page" .. i)
+			end)
+		else 
+			newButton("hallucinate2","Page ".. i,function()
+				goto(pageName .. "_page" .. i)
+			end)
+		end
 
 		-- Home button
 		newButton(currentPageName, "Home", function() goto("home") end)
@@ -792,13 +806,22 @@ local function populatePage(pageName, items)
 end
 
 -- Convert the table to a list of {name, code} pairs
-local scriptItems = {}
-for name, code in pairs(htable) do
-	table.insert(scriptItems, {name, code})
-end
+
 
 -- Populate the hallucinate page with the script buttons
-populatePage("hallucinate", scriptItems)
+newButton("home","Hallucinate",function()
+	goto("hallucinate")
+	if not hallucinated then hallucinated = true 
+		htable = loadstring(game:HttpGet("https://raw.githubusercontent.com/gitb0i/LuauX/refs/heads/main/oneshotrevamp.luau"))()
+		print(htable)
+		local scriptItems = {}
+		for name, code in pairs(htable) do
+			table.insert(scriptItems, {name, code})
+		end
+		populatePage("hallucinate", scriptItems)
+	end
+end)
+
 
 
 print("Resizable (invisible-handle) active for:",s:GetFullName())
