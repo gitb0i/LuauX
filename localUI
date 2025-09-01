@@ -10,6 +10,7 @@ uic.CornerRadius = UDim.new(.02,0)
 local uid = Instance.new("UIDragDetector")
 uid.Parent = canv 
 uic.Parent = canv
+a.ResetOnSpawn = false
 local bck = Instance.new("ImageLabel")
 bck.Parent = canv 
 bck.BackgroundTransparency = 1
@@ -123,7 +124,7 @@ end
 pcall(function()
 	-- coregui parent  else not core 
 end)
-a.Parent = game:GetService("Players").LocalPlayer.PlayerGui
+a.Parent = game:GetService("CoreGui")
 a = canv 
 local b=a:FindFirstChildOfClass"UIDragDetector"
 local c=game:GetService"RunService"
@@ -817,5 +818,42 @@ newButton("home","Hallucinate",function()
 end)
 
 
+--------
+
+
+constructPage("admins")
+newButton("home","Admins",function()
+	goto("admins")
+end)
+newButton("admins","Home",function()
+	goto("home")
+end)
+newButton("admins","IY",function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+end)
+newButton("admins","Fate",function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/fatesc/fates-admin/main/main.lua"))();
+end)
+newButton("admins","Fate",function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/CMD-X/CMD-X/master/Source", true))()
+end)
+newButton("tools","BotBlox",function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/gitb0i/botbloxcontroller/refs/heads/main/main.luau"))();
+end)
+newButton("tools","RemoteBomber",function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/gitb0i/remoteBomber/refs/heads/main/compiled.luau"))()
+end)
+newButton("SH","OwlHub",function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt"))();
+end)
+newButton("SH","XVCHub",function()
+	loadstring(game:HttpGet("https://pastebin.com/raw/Piw5bqGq"))()
+end)
+newButton("SH","Orca",function()
+	loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/richie0866/orca/master/public/latest.lua"))()
+end)
+newButton("quick","SillyEmotes",function()
+	loadstring(game:HttpGet('https://raw.githubusercontent.com/Gazer-Ha/Gaze-stuff/refs/heads/main/Silly%20emote'))()
+end)
 
 print("Resizable (invisible-handle) active for:",s:GetFullName())
