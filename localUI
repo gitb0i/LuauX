@@ -786,7 +786,7 @@ local function populatePage(pageName, items)
 
 		-- Buttons for scripts
 		for _, item in ipairs(pageItems) do
-			newButton(currentPageName, item[1], function() loadstring(item[2])() end)
+			newButton(currentPageName, item[1], function() loadstring(item[2][1])() end)
 		end
 
 		-- Pagination buttons
