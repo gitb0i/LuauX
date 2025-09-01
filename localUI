@@ -834,7 +834,7 @@ end)
 newButton("admins","Fate",function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/fatesc/fates-admin/main/main.lua"))();
 end)
-newButton("admins","Fate",function()
+newButton("admins","CMD-X",function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/CMD-X/CMD-X/master/Source", true))()
 end)
 newButton("tools","BotBlox",function()
