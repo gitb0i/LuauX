@@ -1,0 +1,804 @@
+local a= Instance.new("ScreenGui")
+a.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+local canv = Instance.new("CanvasGroup")
+canv.Position = UDim2.new(0,100,0,100)
+canv.Size = UDim2.new(0,550,0,309)
+canv.Parent = a 
+canv.BackgroundTransparency = 1
+local uic = Instance.new("UICorner")
+uic.CornerRadius = UDim.new(.02,0)
+local uid = Instance.new("UIDragDetector")
+uid.Parent = canv 
+uic.Parent = canv
+local bck = Instance.new("ImageLabel")
+bck.Parent = canv 
+bck.BackgroundTransparency = 1
+bck.ImageTransparency = .77
+bck.Size = UDim2.new(1,0,1,0)
+local glos = Instance.new('ImageLabel')
+glos.Parent = canv 
+glos.ZIndex = 0 
+glos.Size = UDim2.new(1,0,1,0)
+glos.BackgroundTransparency = 1 
+glos.Name = 'gloss'
+bck.Name = 'background'
+glos.Image = "rbxassetid://1326957166"
+bck.Image = 'rbxassetid://719528392'
+a.IgnoreGuiInset = true
+
+local tweenservice = game:GetService("TweenService")
+
+local appf = Instance.new("CanvasGroup") 
+appf.Size = UDim2.new(1,0,1,0)
+appf.Parent = canv 
+appf.BackgroundTransparency = 1
+
+local pages = {}
+local function constructPage(name)
+
+	local page = appf:Clone()
+	page:ClearAllChildren()
+	page.Parent = appf 
+	page.Position = UDim2.new(1,0,0,0)
+
+	local uig = Instance.new("UIGridLayout")
+	uig.CellPadding = UDim2.new(.08,0,.04,0)
+	uig.CellSize = UDim2.new(.185,0,.32,0)
+
+	local uip = Instance.new("UIPadding")
+	uip.PaddingBottom = UDim.new(.07)
+	uip.PaddingTop = uip.PaddingBottom
+	uip.PaddingLeft = UDim.new(.05)
+	uip.PaddingRight = uip.PaddingLeft
+
+	uig.Parent = page 
+	uip.Parent = page
+
+	pages[name] = page 
+	return(page)
+end
+
+local function clickanim(button)
+
+	local grower = button:Clone()
+	grower.Position = UDim2.new(.5,0,.5,0)
+	grower.AnchorPoint = Vector2.new(.5,.5)
+	grower.Size = UDim2.new(1,0,1,0)
+	grower.Parent = button
+	grower.UIStroke:Destroy()
+
+	tweenservice:Create(grower,TweenInfo.new(.3,Enum.EasingStyle.Circular,Enum.EasingDirection.In),{Size = UDim2.new(1.4,0,1.4,0),Transparency=1,Rotation=79}):Play()
+	task.delay(.3,function()
+		grower:Destroy()
+	end)
+
+end
+
+local function newButton(page,txt, func)
+
+	local but = Instance.new("TextButton")
+	but.BackgroundColor3 = Color3.fromRGB(26,26,26)
+	but.TextColor3 = Color3.fromRGB(153,214,255)
+	but.TextSize = 18
+	but.Font = Enum.Font.Arimo
+	if type(page) == type("") then
+		page = pages[page]
+	end
+	but.Parent = page 
+
+	local uiasp = Instance.new("UIAspectRatioConstraint")
+	uiasp.AspectRatio = 1 
+	uiasp.Parent = but 
+
+	local uic = Instance.new("UICorner")
+	uic.CornerRadius = UDim.new(.2,0)
+	uic.Parent = but 
+	local uist = Instance.new("UIStroke")
+	uist.Color = but.TextColor3
+	uist.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	uist.LineJoinMode = Enum.LineJoinMode.Round
+	uist.Parent = but 
+
+	but.Text = txt 
+
+	but.MouseButton1Click:Connect(function()
+		func()
+		clickanim(but)
+	end)
+
+end
+local currentPage = nil
+local function goto(page)
+	if currentPage then
+		tweenservice:Create(currentPage,TweenInfo.new(.4,Enum.EasingStyle.Circular,Enum.EasingDirection.Out),{Position = UDim2.new(1,0,0,0),GroupTransparency=1}):Play()
+	end
+	local newpage = pages[page]
+	newpage.Position = UDim2.new(0,0,-1,0)
+	tweenservice:Create(newpage,TweenInfo.new(.4,Enum.EasingStyle.Quart,Enum.EasingDirection.InOut),{Position = UDim2.new(0,0,0,0),GroupTransparency=0}):Play()
+	currentPage = newpage
+end
+
+
+
+pcall(function()
+	-- coregui parent  else not core 
+end)
+a.Parent = game:GetService("Players").LocalPlayer.PlayerGui
+a = canv 
+local b=a:FindFirstChildOfClass"UIDragDetector"
+local c=game:GetService"RunService"
+
+if not b then
+	warn"No UIDragDetector found under frame; script will not run."
+	return
+end
+
+local d=workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920,1080)
+
+local e=Vector2.new(0,0)
+local f=a.Position
+local g=a.Position
+local h=0
+local i=0
+local j=false
+local k=Vector2.new(0,0)
+local l=Vector2.new(0,0)
+local m=0
+local n
+
+local o=0
+
+local p=0
+local q=0
+
+-- fullscreen control / animation
+local fullScreen = false          -- sticky state
+local animating = false
+local FS_ANIM_DURATION = 0.28     -- seconds
+local animElapsed = 0
+local animFromPos, animToPos      -- UDim2
+local animFromSize, animToSize    -- Vector2 (pixels)
+local savedPositionUDim2 = nil
+local savedSizePixels = nil
+
+-- shrink control / animation
+local isShrunken = false
+local shrinkAnimating = false
+local SHRINK_ANIM_DURATION = 0.2
+local shrinkElapsed = 0
+local originalSize = a.Size
+local originalPosition = a.Position
+local shrunkenSize = UDim2.new(0, 11, 0, 11) -- .02,.02 of a 550x309 window is approximately 11x6, but using 11x11 for square
+
+local function lerp(r,s,t)
+	return r+(s-r)*t
+end
+
+local function smoothstep(t)
+	-- smoothstep easing (nice in/out)
+	return t*t*(3 - 2*t)
+end
+
+local function getMousePos(r)
+	if typeof(r)=="Vector2"then
+		return r
+	end
+
+	if r and r.Position then
+		local s=r.Position
+		if typeof(s)=="Vector2"then
+			return s
+		elseif type(s)=="table"and s.X and s.Y then
+			return Vector2.new(s.X,s.Y)
+		end
+	end
+
+	return Vector2.new(0,0)
+end
+
+local r=a:FindFirstChildOfClass"UICorner"
+if not r then
+	r=Instance.new"UICorner"
+	r.Parent=a
+end
+
+-- helper to get viewport size safely
+local function getViewportSize()
+	local cam = workspace.CurrentCamera
+	if cam then
+		return cam.ViewportSize
+	end
+	return Vector2.new(1920,1080)
+end
+
+-- start/stop drag only when not animating/fullscreen/shrinking
+b.DragStart:Connect(function(s)
+	if fullScreen or animating or isShrunken or shrinkAnimating then return end
+	local t=getMousePos(s)
+	e=t-Vector2.new(a.AbsolutePosition.X,a.AbsolutePosition.Y)
+	k=t
+	n=t
+	j=true
+	m=tick()
+	o=tick()
+end)
+
+b.DragContinue:Connect(function(s)
+	if fullScreen or animating or isShrunken or shrinkAnimating then return end
+	n=getMousePos(s)
+end)
+
+b.DragEnd:Connect(function()
+	-- always clear drag state
+	j=false
+	h=0
+	e=Vector2.new(0,0)
+	n=nil
+end)
+
+-- RightCtrl shrink/restore handler
+local inputService = game:GetService("UserInputService")
+inputService.InputBegan:Connect(function(input, gameProcessed)
+	if input.KeyCode == Enum.KeyCode.RightAlt then
+		if shrinkAnimating or animating then return end
+
+		shrinkAnimating = true
+		shrinkElapsed = 0
+
+		if isShrunken then
+			-- Restore to original size
+			tweenservice:Create(a, TweenInfo.new(SHRINK_ANIM_DURATION, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+				Size = originalSize,
+				Position = originalPosition
+			}):Play()
+		else
+			-- Save current size/position and shrink
+			originalSize = a.Size
+			originalPosition = a.Position
+
+			-- Calculate center position for the shrunken window
+			local viewport = getViewportSize()
+			local centerX = (viewport.X / 2) - 5.5  -- 11/2 = 5.5
+			local centerY = (viewport.Y / 2) - 5.5
+
+			tweenservice:Create(a, TweenInfo.new(SHRINK_ANIM_DURATION, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+				Size = shrunkenSize,
+				Position = UDim2.new(0, centerX, 0, centerY)
+			}):Play()
+		end
+
+		isShrunken = not isShrunken
+
+		-- Wait for animation to complete
+		task.delay(SHRINK_ANIM_DURATION, function()
+			shrinkAnimating = false
+		end)
+	end
+end)
+
+-- first RenderStepped: rotation / drag visual
+c.RenderStepped:Connect(function(s)
+	local viewport = getViewportSize()
+	d = viewport
+
+	-- If animating or in fullscreen, apply animation or force fullscreen appearance and halt rotation/drag behavior
+	if animating or fullScreen or isShrunken or shrinkAnimating then
+		-- compute animation interpolation (if animating) or immediate fullscreen
+		local posToSet = nil
+		local sizeToSet = nil
+		if animating then
+			animElapsed = math.min(FS_ANIM_DURATION, animElapsed + s)
+			local t = smoothstep(animElapsed / FS_ANIM_DURATION)
+			-- interpolate position offsets (use offsets for UDim2)
+			local fromX = animFromPos.X.Offset
+			local fromY = animFromPos.Y.Offset
+			local toX = animToPos.X.Offset
+			local toY = animToPos.Y.Offset
+			local curX = lerp(fromX, toX, t)
+			local curY = lerp(fromY, toY, t)
+			posToSet = UDim2.fromOffset(math.floor(curX+0.5), math.floor(curY+0.5))
+
+			local fx, fy = animFromSize.X, animFromSize.Y
+			local tx, ty = animToSize.X, animToSize.Y
+			local cx = lerp(fx, tx, t)
+			local cy = lerp(fy, ty, t)
+			sizeToSet = UDim2.fromOffset(math.floor(cx+0.5), math.floor(cy+0.5))
+		elseif isShrunken then
+			-- Don't modify position/size during shrink animation (tween handles it)
+			-- Just ensure rotation and corners are reset
+			a.Rotation = 0
+			if r then r.CornerRadius = UDim.new(0,0) end
+			return
+		else
+			-- fullScreen sticky (immediate target if not animating)
+			local vs = getViewportSize()
+			posToSet = UDim2.fromOffset(0,0)
+			sizeToSet = UDim2.fromOffset(vs.X, vs.Y)
+		end
+
+		-- apply transform and neutralize rotation / corner radius
+		if posToSet then a.Position = posToSet end
+		if sizeToSet then a.Size = sizeToSet end
+		a.Rotation = 0
+		if r then r.CornerRadius = UDim.new(0,0) end
+
+		-- finish animation if elapsed
+		if animating and animElapsed >= FS_ANIM_DURATION then
+			animating = false
+			-- if we've animated into fullscreen, ensure fullScreen flag matches target
+			-- (fullScreen already set when toggled below)
+		end
+
+		-- skip the normal drag/rotation logic while animating/fullscreen
+		return
+	end
+
+	-- normal behavior (not animating/fullscreen)
+	if j and n then
+		local t=n
+		local u=t.X-e.X
+		local v=t.Y-e.Y
+
+		local w=math.max(0,d.X-a.AbsoluteSize.X)
+		local x=math.max(0,d.Y-a.AbsoluteSize.Y)
+		u=math.clamp(u,0,w)
+		v=math.clamp(v,0,x)
+		f=UDim2.fromOffset(u,v)
+
+		local y=tick()
+		local z=y-o
+
+		z=math.max(0.001,z)
+
+		l=(t-k)/z
+		k=t
+		o=y
+
+		local A=Vector2.new(
+			u+a.AbsoluteSize.X/2,
+			v+a.AbsoluteSize.Y/2
+		)
+		local B=(t-A)/100
+
+		local C=l.X*0.5
+
+		local D=math.sin((tick()-m)*2)*0.5
+
+		local E=C+(B.X*2)+D
+
+		h=lerp(h,E,math.min(s*12,1))
+
+		h=math.clamp(h,-20,20)
+	elseif j then
+
+		h=lerp(h,0,s*5)
+	end
+
+	local t=lerp(g.X.Offset,f.X.Offset,s*15)
+	local u=lerp(g.Y.Offset,f.Y.Offset,s*15)
+	g=UDim2.fromOffset(t,u)
+	a.Position=g
+
+	i=lerp(i,h,s*8)
+	a.Rotation=i
+
+	p=math.sqrt(math.abs(i/12))/2+0.02
+
+	p=math.clamp(p,0,0.5)
+
+	q=lerp(q,p,s*10)
+
+	r.CornerRadius=UDim.new(q,0)
+end)
+
+-- ----- Resizer section -----
+local s= canv 
+if not s or not s:IsA"GuiObject"then
+	warn"Resizer script expects script.Parent to be a GuiObject (Frame)."
+	return
+end
+
+local t=game:GetService"UserInputService"
+local u=game:GetService"RunService"
+local v=workspace.CurrentCamera
+
+local w=24
+local x=0
+local y=32
+local z=Vector2.new(120,80)
+local A=Vector2.new(2000,2000)
+local B=8
+local C=Enum.UserInputType.MouseButton1
+
+local D=s:FindFirstChild"ResizeHandle"
+local E=false
+local F=Vector2.new(0,0)
+local G=Vector2.new(0,0)
+local H=Vector2.new(s.AbsoluteSize.X,s.AbsoluteSize.Y)
+local I=Vector2.new(s.AbsoluteSize.X,s.AbsoluteSize.Y)
+local J=false
+local K=1
+
+local function ensureInitialSize()
+	local L=getViewportSize()
+
+	if s.AbsoluteSize.X<2 or s.AbsoluteSize.Y<2 then
+		local M=math.floor(L.X/6+0.5)
+		local N=math.floor(L.Y/6+0.5)
+		s.Size=UDim2.fromOffset(M,N)
+		I=Vector2.new(M,N)
+		H=I
+	end
+end
+
+local function clampSize(L)
+	local M=getViewportSize()
+	local N=math.min(A.X,M.X)
+	local O=math.min(A.Y,M.Y)
+	local P=math.clamp(L.X,z.X,N)
+	local Q=math.clamp(L.Y,z.Y,O)
+	return Vector2.new(P,Q)
+end
+
+if not D then
+	D=Instance.new"ImageButton"
+	D.Name="ResizeHandle"
+	D.Size=UDim2.fromOffset(w,w)
+	D.AnchorPoint=Vector2.new(1,1)
+	D.Position=UDim2.new(1,-x,1,-x)
+	D.BackgroundTransparency=1
+	D.BorderSizePixel=0
+	D.AutoButtonColor=false
+	D.ZIndex=s.ZIndex+5
+	D.Image=""
+	D.Parent=s
+end
+
+D.AnchorPoint=Vector2.new(1,1)
+D.Position=UDim2.new(1,-x,1,-x)
+D.Size=UDim2.fromOffset(w,w)
+
+if pcall(function()return D.Selectable end)then
+	D.Selectable=false
+end
+
+local function beginResize(L,M)
+	-- disable resize while animating/fullscreen/shrinking
+	if fullScreen or animating or isShrunken or shrinkAnimating then return end
+
+	E=true
+	F=L
+	G=Vector2.new(math.max(1,s.AbsoluteSize.X),math.max(1,s.AbsoluteSize.Y))
+
+	if G.X<=1 and G.Y<=1 then
+		G=Vector2.new(I.X,I.Y)
+	end
+	H=G
+	I=G
+	K=G.X/math.max(1,G.Y)
+	J=false
+	if not M then
+		J=t:IsKeyDown(Enum.KeyCode.LeftShift)or t:IsKeyDown(Enum.KeyCode.RightShift)
+	end
+end
+
+D.MouseButton1Down:Connect(function()
+	beginResize(t:GetMouseLocation(),false)
+end)
+
+s.InputBegan:Connect(function(L)
+	-- ignore starting resize / double-click reset when animating/fullscreen/shrinking
+	if fullScreen or animating or isShrunken or shrinkAnimating then return end
+
+	if L.UserInputType~=Enum.UserInputType.MouseButton1 and L.UserInputType~=Enum.UserInputType.Touch then
+		return
+	end
+
+	local M=(L.UserInputType==Enum.UserInputType.Touch)and L.Position or t:GetMouseLocation()
+	local N=s.AbsolutePosition
+	local O=s.AbsoluteSize
+
+	local P=N.X+O.X
+	local Q=N.Y+O.Y
+	local R=math.abs(P-M.X)
+	local S=math.abs(Q-M.Y)
+
+	if R<=y and S<=y then
+		beginResize(M,L.UserInputType==Enum.UserInputType.Touch)
+	end
+end)
+
+t.InputChanged:Connect(function(L)
+	-- disable resizing while animating/fullscreen/shrinking
+	if fullScreen or animating or isShrunken or shrinkAnimating then return end
+	if not E then return end
+
+	if L.UserInputType==Enum.UserInputType.MouseMovement then
+		local M=t:GetMouseLocation()
+		local N=M-F
+
+		local O=G.X+N.X
+		local P=G.Y+N.Y
+
+		J=t:IsKeyDown(Enum.KeyCode.LeftShift)or t:IsKeyDown(Enum.KeyCode.RightShift)
+
+		if J then
+			local Q
+			if math.abs(N.X)>math.abs(N.Y)then
+				Q=O/math.max(1,G.X)
+			else
+				Q=P/math.max(1,G.Y)
+			end
+			O=G.X*Q
+			P=G.Y*Q
+		end
+
+		H=clampSize(Vector2.new(math.max(1,O),math.max(1,P)))
+
+	elseif L.UserInputType==Enum.UserInputType.Touch then
+		local M=L.Position
+		local N=M-F
+
+		local O=G.X+N.X
+		local P=G.Y+N.Y
+
+		H=clampSize(Vector2.new(math.max(1,O),math.max(1,P)))
+	end
+end)
+
+t.InputEnded:Connect(function(L)
+	if L.UserInputType==C or L.UserInputType==Enum.UserInputType.Touch then
+		E=false
+	end
+end)
+
+if t.WindowFocusReleased then
+	t.WindowFocusReleased:Connect(function()
+		E=false
+	end)
+end
+
+local L
+ensureInitialSize()
+L=u.RenderStepped:Connect(function(M)
+	v=workspace.CurrentCamera
+
+	-- if animating or fullScreen or shrinking, update size/position from animation (resizer should not override)
+	if animating or fullScreen or isShrunken or shrinkAnimating then
+		-- compute animation interpolation or immediate fullscreen target
+		if animating then
+			-- we don't update animElapsed here because the other RenderStepped already increments it,
+			-- but we will compute the same eased interpolation using current animElapsed/FS_ANIM_DURATION
+			local tfrac = math.min(1, animElapsed / FS_ANIM_DURATION)
+			local t = smoothstep(tfrac)
+			-- interpolate size
+			local fx, fy = animFromSize.X, animFromSize.Y
+			local tx, ty = animToSize.X, animToSize.Y
+			local cx = lerp(fx, tx, t)
+			local cy = lerp(fy, ty, t)
+			s.Size = UDim2.fromOffset(math.floor(cx+0.5), math.floor(cy+0.5))
+			-- interpolate position
+			local fromX = animFromPos.X.Offset
+			local fromY = animFromPos.Y.Offset
+			local toX = animToPos.X.Offset
+			local toY = animToPos.Y.Offset
+			local curX = lerp(fromX, toX, t)
+			local curY = lerp(fromY, toY, t)
+			s.Position = UDim2.fromOffset(math.floor(curX+0.5), math.floor(curY+0.5))
+
+			-- finish animation cleanup (if elapsed reached)
+			if animElapsed >= FS_ANIM_DURATION then
+				animating = false
+			end
+		elseif isShrunken or shrinkAnimating then
+			-- Don't modify size/position during shrink animation (tween handles it)
+			return
+		else
+			-- fullScreen sticky state: keep filling viewport
+			local vs = getViewportSize()
+			s.Size = UDim2.fromOffset(vs.X, vs.Y)
+			s.Position = UDim2.fromOffset(0,0)
+		end
+		return
+	end
+
+	-- normal resizer interpolation (unchanged)
+	if E or(H-I).Magnitude>0.5 then
+
+		local N=math.min(1,B*M)
+		I=I:Lerp(H,N)
+
+		s.Size=UDim2.fromOffset(math.floor(I.X+0.5),math.floor(I.Y+0.5))
+
+
+		local O=getViewportSize()
+		local P=s.AbsolutePosition
+		local Q=I.X
+		local R=I.Y
+
+		local S=math.max(0,O.X-Q)
+		local T=math.max(0,O.Y-R)
+
+		if P.X<0 or P.X>S or P.Y<0 or P.Y>T then
+			local U=math.clamp(P.X,0,S)
+			local V=math.clamp(P.Y,0,T)
+			local W=s.Position
+			if W.X.Scale==0 and W.Y.Scale==0 then
+				s.Position=UDim2.fromOffset(math.floor(U+0.5),math.floor(V+0.5))
+			else
+				s.Position=UDim2.new(W.X.Scale,math.floor(U+0.5),W.Y.Scale,math.floor(V+0.5))
+			end
+		end
+	end
+end)
+
+s.AncestryChanged:Connect(function()
+	if not s.Parent then
+		if L and L.Disconnect then
+			L:Disconnect()
+		end
+	end
+end)
+
+local M=0
+s.InputBegan:Connect(function(N)
+	-- ignore double-click corner-reset while animating/fullscreen/shrinking
+	if animating or fullScreen or isShrunken or shrinkAnimating then return end
+
+	if N.UserInputType~=Enum.UserInputType.MouseButton1 then return end
+	local O=t:GetMouseLocation()
+	local P=s.AbsolutePosition
+	local Q=s.AbsoluteSize
+	local R=P.X+Q.X
+	local S=P.Y+Q.Y
+	local T=math.abs(R-O.X)
+	local U=math.abs(S-O.Y)
+	if T<=y and U<=y then
+		local V=tick()
+		if V-M<0.33 then
+			H=clampSize(Vector2.new(240,160))
+		end
+		M=V
+	end
+end)
+
+-- RightShift handling: toggle fullscreen sticky with animated transition
+t.InputBegan:Connect(function(input, gp)
+	if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.RightShift then
+		-- if currently animating or shrinking, ignore toggle until complete
+		if animating or shrinkAnimating then return end
+
+		-- start animation to target (toggle)
+		local viewport = getViewportSize()
+		-- prepare animation snapshot
+		animFromPos = s.Position
+		animFromSize = Vector2.new(s.AbsoluteSize.X, s.AbsoluteSize.Y)
+
+		if not fullScreen then
+			-- going into fullscreen: save current layout to restore later
+			savedPositionUDim2 = s.Position
+			savedSizePixels = Vector2.new(s.AbsoluteSize.X, s.AbsoluteSize.Y)
+			animToPos = UDim2.fromOffset(0,0)
+			animToSize = Vector2.new(viewport.X, viewport.Y)
+			-- ensure interactions are cleared
+			j = false
+			E = false
+			-- set flags
+			fullScreen = true
+		else
+			-- leaving fullscreen: restore saved pixel size and pos
+			if savedPositionUDim2 then
+				animToPos = savedPositionUDim2
+			else
+				animToPos = UDim2.fromOffset(0,0)
+			end
+			if savedSizePixels then
+				animToSize = Vector2.new(savedSizePixels.X, savedSizePixels.Y)
+			else
+				-- fallback to a small default
+				animToSize = Vector2.new(math.floor(viewport.X/8+0.5), math.floor(viewport.Y/8+0.5))
+			end
+			-- we'll clear fullScreen flag at animation end; keep it true for now so interactions are paused during animation
+			fullScreen = false
+		end
+
+		-- start animation
+		animElapsed = 0
+		animating = true
+	end
+end)
+
+constructPage("home")
+constructPage("settings")
+constructPage("SH")
+constructPage("quick")
+constructPage("tools")
+constructPage("hallucinate")
+
+local hallucinated = false
+local htable = {}
+
+goto("home")
+newButton("home","Settings",function()
+	goto("settings")
+end)
+newButton("home","Hubs",function()
+	goto("SH")
+end)
+newButton("home","Scripts",function()
+	goto("quick")
+end)
+newButton("home","Tools",function()
+	goto("tools")
+end)
+newButton("home","Hallucinate",function()
+  goto("hallucinate")
+  if not hallucinated then hallucinated = true 
+   htable = loadstring(game:HttpGet("https://raw.githubusercontent.com/gitb0i/LuauX/refs/heads/main/oneshotrevamp.luau"))()
+   
+  end
+end)
+
+newButton("settings","Home",function()
+	goto("home")
+end)
+newButton("SH","Home",function()
+	goto("home")
+end)
+newButton("quick","Home",function()
+	goto("home")
+end)
+newButton("tools","Home",function()
+	goto("home")
+end)
+newButton("hallucinate","Home",function()
+  goto("home")
+end)
+
+local function populatePage(pageName, items)
+	local buttonsPerPage = 12
+	local pageCount = math.ceil(#items / (buttonsPerPage - 3)) -- -2 for next/back buttons
+	local pages = {}
+
+	-- Split items into pages
+	for i = 1, pageCount do
+		pages[i] = {}
+		for j = (i-1)*(buttonsPerPage-3)+1, math.min(i*(buttonsPerPage-3), #items) do
+			table.insert(pages[i], items[j])
+		end
+	end
+
+	-- Generate buttons for each page
+	for i, pageItems in ipairs(pages) do
+		local currentPageName = pageName .. "_page" .. i
+		constructPage(currentPageName)
+
+		-- Home button
+		newButton(currentPageName, "Home", function() goto("home") end)
+
+		-- Buttons for scripts
+		for _, item in ipairs(pageItems) do
+			newButton(currentPageName, item[1], function() loadstring(item[2])() end)
+		end
+
+		-- Pagination buttons
+		if i > 1 then
+			newButton(currentPageName, "Back", function() goto(pageName .. "_page" .. (i-1)) end)
+		end
+		if i < pageCount then
+			newButton(currentPageName, "Next", function() goto(pageName .. "_page" .. (i+1)) end)
+		end
+	end
+end
+
+-- Convert the table to a list of {name, code} pairs
+local scriptItems = {}
+for name, code in pairs(htable) do
+	table.insert(scriptItems, {name, code})
+end
+
+-- Populate the hallucinate page with the script buttons
+populatePage("hallucinate", scriptItems)
+
+
+print("Resizable (invisible-handle) active for:",s:GetFullName())
